@@ -5,15 +5,15 @@ namespace PayamBlockChain.Models
     public interface IBlock
     {
         //Data Block
-        BlockData BlockData { get; set; }        
+        BlockData BlockData { get; }        
         // Block Header
-        int BlockNumber { get; set; }
-        DateTime CreatedDate { get; set; }
+        int BlockNumber { get; }
+        DateTime CreatedDate { get;  }
         string BlockHash { get; }
         string PreviousBlockHash { get; set; }
         IBlock NextBlock { get; set; }
-        
-        
+
+
         //Crypto methods
         string CalculateBlockHash (string previousBlockHash);
         void SetBlockHash (IBlock parent);

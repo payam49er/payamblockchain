@@ -2,6 +2,6 @@ namespace PayamBlockChain.Models
 {
     public enum ClaimType
     {
-        TotalLos = 0
+        TotalLoss= 0
     }
 }
