@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using Clifton.Blockchain;
 using Newtonsoft.Json;
 
 namespace PayamBlockChain.Models
@@ -8,10 +10,13 @@ namespace PayamBlockChain.Models
     public class Block:IBlock
     {
         private readonly IComputeHash _computeHash;
+        private MerkleTree _merkleTree = new MerkleTree();
+        
+        public IList<ITransaction> Transactions { get; }
         public BlockData BlockData { get;}
 
         [JsonProperty("BlockNumber")]
-        public int BlockNumber { get; set; }
+        public int BlockNumber { get; private set; }
         
         [JsonProperty("CreatedDate")]
         public DateTime CreatedDate { get; private set; }
@@ -22,19 +27,17 @@ namespace PayamBlockChain.Models
 
 
 
-        public Block(int blockNumber,string claimNumber, decimal settlementAmount, DateTime settlementDate, string carRegistration, int milage, ClaimType claimType, IBlock parent)
+        public Block(int blockNumber)
         {
-            _computeHash = new ComputeHash();
-            BlockData = new BlockData();
             BlockNumber = blockNumber;
-            BlockData.ClaimNumber = claimNumber;
-            BlockData.SettlementAmount = settlementAmount;
-            BlockData.SettlementDate = settlementDate;
-            BlockData.CarRegistration = carRegistration;
-            BlockData.Milage = milage;
-            BlockData.ClaimType = claimType;
             CreatedDate = DateTime.UtcNow;
-            SetBlockHash(parent);
+            Transactions = new List<ITransaction>();
+            _computeHash = new ComputeHash();
+        }
+
+        public void AddTransaction(ITransaction transaction)
+        {
+            Transactions.Add(transaction);
         }
         
         
@@ -43,8 +46,8 @@ namespace PayamBlockChain.Models
             //block header
             var blockHeader = BlockNumber + CreatedDate.ToString(CultureInfo.InvariantCulture) + PreviousBlockHash;
             //get the json string of the data
-            var blockDataJsonString = JsonConvert.SerializeObject(BlockData);
-            var combined = blockHeader + blockDataJsonString;
+            //var blockDataJsonString = JsonConvert.SerializeObject(BlockData);
+            var combined = blockHeader + _merkleTree.RootNode;
             return Convert.ToBase64String(_computeHash.ComputeHashSha256(Encoding.UTF8.GetBytes(combined)));
 
         }
@@ -61,13 +64,27 @@ namespace PayamBlockChain.Models
                 PreviousBlockHash = null;
             }
 
+            BuildMerkleTree();
+
             BlockHash = CalculateBlockHash(PreviousBlockHash);
         }
 
-      
+        private void BuildMerkleTree()
+        {
+            _merkleTree = new MerkleTree();
+            foreach (ITransaction transaction in Transactions)
+            {
+                _merkleTree.AppendLeaf(MerkleHash.Create(transaction.CalculateTransactionHash()));
+            }
+
+            _merkleTree.BuildTree();
+        }
+
+
         public bool IsValidChain(string prevBlockHash, bool verbose)
         {
             bool isValid = true;
+            BuildMerkleTree();
             //is this a valid block and transaction
             string newBlockHash = CalculateBlockHash(prevBlockHash);
 
