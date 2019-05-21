@@ -44,7 +44,8 @@ namespace PayamBlockChain.Models
         public string CalculateBlockHash(string previousBlockHash)
         {
             //block header
-            var blockHeader = BlockNumber + CreatedDate.ToString(CultureInfo.InvariantCulture) + PreviousBlockHash;
+            var blockHeader = BlockNumber + CreatedDate.ToString(CultureInfo.InvariantCulture) +
+                              PreviousBlockHash;
             //get the json string of the data
             //var blockDataJsonString = JsonConvert.SerializeObject(BlockData);
             var combined = blockHeader + _merkleTree.RootNode;
