@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 using Clifton.Blockchain;
 using Newtonsoft.Json;
@@ -35,12 +36,22 @@ namespace PayamBlockChain.Models
             _computeHash = new ComputeHash();
         }
 
+        public Block(int blockNumber,IKeyStore keyStore)
+        {
+            BlockNumber = blockNumber;
+            Transactions = new List<ITransaction>();
+            KeyStore = keyStore;
+        }
+
         public void AddTransaction(ITransaction transaction)
         {
             Transactions.Add(transaction);
         }
-        
-        
+
+        public string BlockSigniture { get; private set; }
+        public IKeyStore KeyStore { get; private set; }
+
+
         public string CalculateBlockHash(string previousBlockHash)
         {
             //block header
@@ -49,8 +60,12 @@ namespace PayamBlockChain.Models
             //get the json string of the data
             //var blockDataJsonString = JsonConvert.SerializeObject(BlockData);
             var combined = blockHeader + _merkleTree.RootNode;
-            return Convert.ToBase64String(_computeHash.ComputeHashSha256(Encoding.UTF8.GetBytes(combined)));
+            if (KeyStore == null)
+            {
+                return Convert.ToBase64String(_computeHash.ComputeHashSha256(Encoding.UTF8.GetBytes(combined)));                
+            }
 
+            return Convert.ToBase64String(HMAC.ComputeHmacsha256(Encoding.UTF8.GetBytes(combined),KeyStore.AuthenticatedHashKey));
         }
 
         public void SetBlockHash(IBlock parent)

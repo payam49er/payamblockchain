@@ -23,5 +23,7 @@ namespace PayamBlockChain.Models
         void SetBlockHash (IBlock parent);
         bool IsValidChain (string prevBlockHash, bool verbose);
         void AddTransaction(ITransaction transaction);
+        string BlockSigniture { get; }
+        IKeyStore KeyStore { get; }
     }
 }
