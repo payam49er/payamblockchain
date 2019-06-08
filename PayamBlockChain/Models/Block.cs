@@ -24,7 +24,8 @@ namespace PayamBlockChain.Models
         
         public string PreviousBlockHash { get; set; }
         public IBlock NextBlock { get; set; }
-
+        
+        public int Difficulty { get; private set; }
 
 
         public Block(int blockNumber)
@@ -35,11 +36,12 @@ namespace PayamBlockChain.Models
             _computeHash = new ComputeHash();
         }
 
-        public Block(int blockNumber,IKeyStore keyStore)
+        public Block(int blockNumber,IKeyStore keyStore, int difficulty)
         {
             BlockNumber = blockNumber;
             Transactions = new List<ITransaction>();
             KeyStore = keyStore;
+            Difficulty = difficulty;
         }
 
         public void AddTransaction(ITransaction transaction)
